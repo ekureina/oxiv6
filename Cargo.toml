@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "oxiv6-kernel",
+]
+resolver = "2"
