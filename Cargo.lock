@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "oxiv6"
+name = "oxiv6-kernel"
 version = "0.1.0"
