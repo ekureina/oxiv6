@@ -12,6 +12,7 @@ const MAX_HART_COUNT: usize = 8;
 static mut STACK_0: [[u8; STACK_SIZE]; MAX_HART_COUNT] = [[0; STACK_SIZE]; MAX_HART_COUNT];
 static PRINT_IMPL: spin::once::Once<&'static dyn DebugPrint> = spin::once::Once::new();
 
+#[allow(unused_macros)]
 macro_rules! print {
     ($($arg:tt)*) => { core::write!($crate::DebugWriter, $($arg)*).expect("Unable to write!"); }
 }
@@ -20,6 +21,7 @@ macro_rules! println {
     ($($arg:tt)*) => { core::writeln!($crate::DebugWriter, $($arg)*).expect("Unable to write!"); }
 }
 
+#[allow(unused_imports)]
 pub(crate) use print;
 pub(crate) use println;
 
@@ -49,8 +51,9 @@ extern "C" fn rust_main(_hartid: usize, _device_tree_paddr: usize) -> ! {
         PRINT_IMPL.call_once(|| &LegacyDebugPrint);
     }
 
-    print!("Starting up Oxvi6! ");
-    println!("Shutting down...");
+    log::set_logger(&DebugWriter).map(|()| log::set_max_level(log::LevelFilter::Debug)).unwrap();
+
+    log::info!("Logging correctly!");
     sbi_rt::system_reset(sbi_rt::Shutdown, sbi_rt::NoReason);
     loop {}
 }
@@ -106,6 +109,21 @@ impl Write for DebugWriter {
     fn write_str(&mut self, string: &str) -> core::fmt::Result {
         PRINT_IMPL.get().unwrap().print_str(string)
     }
+}
+
+impl log::Log for DebugWriter {
+    fn enabled(&self, _metadata: &log::Metadata) -> bool {
+        true
+    }
+
+    fn log(&self, record: &log::Record) {
+        let file = record.file().unwrap_or("");
+        let line = record.line().unwrap_or(0);
+
+        println!("[{}] ({}:{}:{}): {}", record.level(), record.target(), file, line, record.args());
+    }
+
+    fn flush(&self) {}
 }
 
 global_asm!(include_str!("trampoline.S"), TRAPFRAME = const TRAPFRAME);
