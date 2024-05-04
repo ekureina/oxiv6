@@ -51,9 +51,8 @@ extern "C" fn rust_main(_hartid: usize, _device_tree_paddr: usize) -> ! {
         PRINT_IMPL.call_once(|| &LegacyDebugPrint);
     }
 
-    log::set_logger(&DebugWriter).map(|()| log::set_max_level(log::LevelFilter::Debug)).unwrap();
+    log::set_logger(&DebugWriter).map(|()| log::set_max_level(log::LevelFilter::Debug)).expect("Unable to set logger");
 
-    log::info!("Logging correctly!");
     sbi_rt::system_reset(sbi_rt::Shutdown, sbi_rt::NoReason);
     loop {}
 }
@@ -130,6 +129,8 @@ global_asm!(include_str!("trampoline.S"), TRAPFRAME = const TRAPFRAME);
 
 #[cfg(not(test))]
 #[panic_handler]
-fn panic_handler(_info: &core::panic::PanicInfo<'_>) -> ! {
+fn panic_handler(info: &core::panic::PanicInfo<'_>) -> ! {
+    println!("{}", info);
+    sbi_rt::system_reset(sbi_rt::Shutdown, sbi_rt::NoReason);
     loop {}
 }
