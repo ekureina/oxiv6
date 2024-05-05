@@ -42,11 +42,11 @@ struct LegacyDebugPrint;
 impl DebugPrint for LegacyDebugPrint {
     #[allow(deprecated)]
     fn print_byte(&self, byte: u8) -> core::fmt::Result {
-        return if sbi_rt::legacy::console_putchar(byte as usize) != 0 {
+        if sbi_rt::legacy::console_putchar(byte as usize) != 0 {
             Err(core::fmt::Error)
         } else {
             Ok(())
-        };
+        }
     }
 }
 

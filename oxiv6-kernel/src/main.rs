@@ -16,18 +16,20 @@ mod println;
 #[no_mangle]
 #[link_section = ".text.entry"]
 unsafe extern "C" fn _start(hartid: usize, device_tree_paddr: usize) -> ! {
-    asm!(
-        "la sp, {stack0}",
-        "li t0, {stack_size}",
-        "addi t1, a0, 1",
-        "mul t0, t1, t0",
-        "add sp, sp, t0",
-        "j {rust_main}",
-        stack0 = sym STACK_0,
-        stack_size = const STACK_SIZE,
-        rust_main = sym rust_main,
-        options(noreturn),
-    )
+    unsafe {
+        asm!(
+            "la sp, {stack0}",
+            "li t0, {stack_size}",
+            "addi t1, a0, 1",
+            "mul t0, t1, t0",
+            "add sp, sp, t0",
+            "j {rust_main}",
+            stack0 = sym STACK_0,
+            stack_size = const STACK_SIZE,
+            rust_main = sym rust_main,
+            options(noreturn),
+        )
+    }
 }
 
 #[no_mangle]
@@ -39,6 +41,7 @@ extern "C" fn rust_main(_hartid: usize, _device_tree_paddr: usize) -> ! {
     }
 
     sbi_rt::system_reset(sbi_rt::Shutdown, sbi_rt::NoReason);
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 

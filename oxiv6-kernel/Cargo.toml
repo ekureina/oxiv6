@@ -9,3 +9,13 @@ edition = "2021"
 log = "0.4.21"
 sbi-rt = { version = "0.0.3", features = ["legacy"] }
 spin = "0.9.8"
+
+
+[lints.rust]
+nonstandard_style = "deny"
+deprecated_in_future = "deny"
+unsafe_op_in_unsafe_fn = "deny"
+
+[lints.clippy]
+all = "deny"
+pedantic = "warn"
