@@ -70,6 +70,6 @@ global_asm!(include_str!("trampoline.S"), TRAPFRAME = const TRAPFRAME);
 #[panic_handler]
 fn panic_handler(info: &core::panic::PanicInfo<'_>) -> ! {
     println!("{}", info);
-    sbi_rt::system_reset(sbi_rt::Shutdown, sbi_rt::NoReason);
+    sbi_rt::system_reset(sbi_rt::Shutdown, sbi_rt::SystemFailure);
     loop {}
 }
