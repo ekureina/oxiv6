@@ -1,14 +1,28 @@
-        #
-        # low-level code to handle traps from user space into
-        # the kernel, and returns from kernel to user.
-        #
-        # the kernel maps the page holding this code
-        # at the same virtual address (TRAMPOLINE)
-        # in user and kernel space so that it continues
-        # to work when it switches page tables.
-        # kernel.ld causes this code to start at 
-        # a page boundary.
-        #
+#   Copyright 2024 Claire Moore
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+#
+# low-level code to handle traps from user space into
+# the kernel, and returns from kernel to user.
+#
+# the kernel maps the page holding this code
+# at the same virtual address (TRAMPOLINE)
+# in user and kernel space so that it continues
+# to work when it switches page tables.
+# kernel.ld causes this code to start at 
+# a page boundary.
+#
 
 #include "riscv.h"
 #include "memlayout.h"
