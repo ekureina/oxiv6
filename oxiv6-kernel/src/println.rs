@@ -1,6 +1,7 @@
 use core::fmt::Write;
 
 static PRINT_IMPL: spin::once::Once<&'static dyn DebugPrint> = spin::once::Once::new();
+const LEVEL_FILTER: log::LevelFilter = log::LevelFilter::Trace;
 
 #[allow(unused_macros)]
 macro_rules! print {
@@ -15,7 +16,7 @@ macro_rules! println {
 pub(crate) fn set_debug_console_print() {
     PRINT_IMPL.call_once(|| &DebugConsoleDebugPrint);
     log::set_logger(&DebugWriter)
-        .map(|()| log::set_max_level(log::LevelFilter::Debug))
+        .map(|()| log::set_max_level(LEVEL_FILTER))
         .expect("Unable to set logger");
 }
 
@@ -23,7 +24,7 @@ pub(crate) fn set_debug_console_print() {
 pub(crate) fn set_legacy_debug_print() {
     PRINT_IMPL.call_once(|| &LegacyDebugPrint);
     log::set_logger(&DebugWriter)
-        .map(|()| log::set_max_level(log::LevelFilter::Debug))
+        .map(|()| log::set_max_level(LEVEL_FILTER))
         .expect("Unable to set logger");
 }
 trait DebugPrint: Sync {
@@ -86,22 +87,24 @@ impl Write for DebugWriter {
 }
 
 impl log::Log for DebugWriter {
-    fn enabled(&self, _metadata: &log::Metadata) -> bool {
-        true
+    fn enabled(&self, metadata: &log::Metadata) -> bool {
+        metadata.level() >= log::max_level()
     }
 
     fn log(&self, record: &log::Record) {
-        let file = record.file().unwrap_or("");
-        let line = record.line().unwrap_or(0);
+        if self.enabled(record.metadata()) {
+            let file = record.file().unwrap_or("");
+            let line = record.line().unwrap_or(0);
 
-        println!(
-            "[{}] ({}:{}:{}): {}",
-            record.level(),
-            record.target(),
-            file,
-            line,
-            record.args()
-        );
+            println!(
+                "[{}] ({}:{}:{}): {}",
+                record.level(),
+                record.target(),
+                file,
+                line,
+                record.args()
+            );
+        }
     }
 
     fn flush(&self) {}

@@ -15,9 +15,9 @@ pub(crate) unsafe fn load_fdt(fdt_address: usize) {
     let true_physical_stop = fdt
         .memory()
         .regions()
-        .fold(crate::_start as usize, |mem_size, region| {
-            mem_size + region.size.expect("Unable to load memory size")
-        });
+        .map(|region| region.starting_address as usize + region.size.unwrap_or(0))
+        .max()
+        .expect("Unable to determine the memory size allocated to oxiv6");
     // Get the CPU Count from the FDT. The max for this value for qemu's `virt` architecture is 8, but we allow for more memory to
     // be used if less CPUs are allocated.
     let cpu_count = *CPU_COUNT.call_once(|| fdt.cpus().count());

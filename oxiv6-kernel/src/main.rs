@@ -12,7 +12,10 @@ const STACK_SIZE: usize = 8192;
 const MAX_HART_COUNT: usize = 8;
 static mut STACK_0: [[u8; STACK_SIZE]; MAX_HART_COUNT] = [[0; STACK_SIZE]; MAX_HART_COUNT];
 
+extern crate alloc;
+
 mod dev;
+mod kalloc;
 mod println;
 
 extern "C" {
@@ -58,6 +61,8 @@ extern "C" fn rust_main(_hartid: usize, device_tree_paddr: usize) -> ! {
         get_physical_memory_size(),
         get_cpu_count()
     );
+
+    crate::kalloc::ALLOCATOR.init();
 
     sbi_rt::system_reset(sbi_rt::Shutdown, sbi_rt::NoReason);
     #[allow(clippy::empty_loop)]
