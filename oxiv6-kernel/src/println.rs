@@ -17,7 +17,7 @@
 use core::fmt::Write;
 
 static PRINT_IMPL: spin::once::Once<&'static dyn DebugPrint> = spin::once::Once::new();
-const LEVEL_FILTER: log::LevelFilter = log::LevelFilter::Trace;
+const LEVEL_FILTER: log::LevelFilter = log::LevelFilter::Info;
 
 #[allow(unused_macros)]
 macro_rules! print {
@@ -104,7 +104,7 @@ impl Write for DebugWriter {
 
 impl log::Log for DebugWriter {
     fn enabled(&self, metadata: &log::Metadata) -> bool {
-        metadata.level() >= log::max_level()
+        metadata.level() <= log::max_level()
     }
 
     fn log(&self, record: &log::Record) {
