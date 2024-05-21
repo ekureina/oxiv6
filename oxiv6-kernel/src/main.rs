@@ -52,9 +52,22 @@ pub(crate) unsafe extern "C" fn _start(hartid: usize, device_tree_paddr: usize) 
             "addi t1, a0, 1",
             "mul t0, t0, t1",
             "add sp, sp, t0",
-            "j {rust_main}",
+            "j {rust_boot}",
             stack0 = sym STACK_0,
             stack_size = const STACK_SIZE,
+            rust_boot = sym rust_boot,
+            options(noreturn),
+        )
+    }
+}
+
+#[naked]
+#[no_mangle]
+unsafe extern "C" fn subhart_start(hartid: usize, root_sp_location: usize) -> ! {
+    unsafe {
+        asm!(
+            "add sp, a1, zero",
+            "j {rust_main}",
             rust_main = sym rust_main,
             options(noreturn),
         )
@@ -62,7 +75,7 @@ pub(crate) unsafe extern "C" fn _start(hartid: usize, device_tree_paddr: usize) 
 }
 
 #[no_mangle]
-extern "C" fn rust_main(_hartid: usize, device_tree_paddr: usize) -> ! {
+extern "C" fn rust_boot(hartid: usize, device_tree_paddr: usize) -> ! {
     if sbi_rt::probe_extension(sbi_rt::Console).is_available() {
         println::set_debug_console_print();
     } else {
@@ -81,6 +94,11 @@ extern "C" fn rust_main(_hartid: usize, device_tree_paddr: usize) -> ! {
 
     crate::kalloc::ALLOCATOR.init();
 
+    rust_main(hartid)
+}
+
+#[no_mangle]
+extern "C" fn rust_main(_hartid: usize) -> ! {
     sbi_rt::system_reset(sbi_rt::Shutdown, sbi_rt::NoReason);
     #[allow(clippy::empty_loop)]
     loop {}
