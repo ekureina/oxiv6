@@ -44,6 +44,7 @@ impl PageTableEntry {
 
     /// Map this PTE to a physical address as a u64
     #[must_use]
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn pa_int(&self) -> u64 {
         self.pa() << 12
     }
@@ -80,6 +81,7 @@ impl PageTableEntry {
 
     /// Get the flag bits in this PTE
     #[must_use]
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn get_flags(&self) -> u64 {
         self.bit_range(7, 0)
     }
@@ -100,11 +102,12 @@ impl From<u64> for PageTableEntry {
 /// Values set in the RSW field of the [`PageTableEntry`]
 #[repr(u8)]
 #[derive(Debug, PartialEq, Eq, Default, Copy, Clone, IntoPrimitive, FromPrimitive)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum RSW {
     #[default]
     /// Default value of the RSW
     Default,
-    /// Set if the page in question is a COWable page (Writeable, but COW'd)
+    /// Set if the page in question is a `COWable` page (Writeable, but COW'd)
     COWPage,
 }
 
