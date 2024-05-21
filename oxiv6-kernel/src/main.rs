@@ -33,6 +33,7 @@ extern crate alloc;
 mod dev;
 mod kalloc;
 mod println;
+mod vm;
 
 extern "C" {
     // TODO: Understand why linker can't provide this as a usize

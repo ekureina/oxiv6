@@ -15,29 +15,12 @@
 */
 
 use crate::dev::spec::get_physical_memory_size;
+use crate::vm::{PAGE_SIZE, PGROUNDDOWN, PGROUNDUP};
 use alloc::alloc::{GlobalAlloc, Layout};
 use core::cell::Cell;
 use core::ptr::{self, null_mut, NonNull};
 use log::debug;
 use spin::mutex::{Mutex, MutexGuard};
-
-pub(crate) const PAGE_SIZE: usize = 4096;
-
-macro_rules! PGROUNDUP {
-    ($e:expr) => {
-        ($e as usize + $crate::kalloc::PAGE_SIZE - 1)
-            & !($crate::kalloc::PAGE_SIZE - 1)
-    };
-}
-
-macro_rules! PGROUNDDOWN {
-    ($e:expr) => {
-        $e as usize & !($crate::kalloc::PAGE_SIZE - 1)
-    };
-}
-
-pub(crate) use PGROUNDDOWN;
-pub(crate) use PGROUNDUP;
 
 #[repr(C)]
 struct Run {
