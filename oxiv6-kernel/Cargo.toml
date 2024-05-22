@@ -10,6 +10,7 @@ bitfield = "0.15.0"
 fdt = "0.1.5"
 log = "0.4.21"
 num_enum = { version = "0.7.2", default-features = false }
+riscv = { version = "0.11.1", features = ["s-mode"] }
 sbi-rt = { version = "0.0.3", features = ["legacy"] }
 spin = "0.9.8"
 
