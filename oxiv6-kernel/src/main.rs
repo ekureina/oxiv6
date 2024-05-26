@@ -39,6 +39,7 @@ extern "C" {
     // TODO: Understand why linker can't provide this as a usize
     pub(crate) fn etext();
     pub(crate) fn end();
+    pub(crate) fn trampoline();
 }
 
 #[naked]
@@ -93,12 +94,21 @@ extern "C" fn rust_boot(hartid: usize, device_tree_paddr: usize) -> ! {
     );
 
     crate::kalloc::ALLOCATOR.init();
+    info!("Allocator Initialized");
+    crate::vm::kvmmake();
+    info!("Set up Kernel page table");
 
     rust_main(hartid)
 }
 
 #[no_mangle]
 extern "C" fn rust_main(_hartid: usize) -> ! {
+    crate::vm::KERNEL_PAGE_TABLE
+        .get()
+        .expect("Expected kernel page table to be initialized")
+        .set_as_active_table();
+    info!("Installed Kernel page table");
+
     sbi_rt::system_reset(sbi_rt::Shutdown, sbi_rt::NoReason);
     #[allow(clippy::empty_loop)]
     loop {}
