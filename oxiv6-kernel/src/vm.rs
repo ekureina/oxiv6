@@ -1,5 +1,6 @@
 use alloc::alloc::{alloc_zeroed, Layout};
 use bitfield::{bitfield, BitMut, BitRange, BitRangeMut};
+use bitflags::bitflags;
 use core::{mem::size_of, slice::from_raw_parts_mut};
 use num_enum::{FromPrimitive, IntoPrimitive};
 use riscv::register::satp;
@@ -42,7 +43,7 @@ impl<'a> PageTable<'a> {
         virtual_base: usize,
         region_size: usize,
         physical_base: usize,
-        permissions: u8,
+        permissions: PageTableEntryFlags,
     ) -> Result<(), PageTableMapError> {
         assert!(region_size != 0, "map_pages: size");
 
@@ -52,8 +53,7 @@ impl<'a> PageTable<'a> {
             self.walk_mut(virtual_addr, true, |pte| {
                 assert!(!pte.valid(), "map_pages: remap");
                 pte.set_mapping(virtual_addr - virtual_page_start + physical_base);
-                pte.set_flags(permissions);
-                pte.set_valid(true);
+                pte.set_flags(permissions | PageTableEntryFlags::V);
             })?;
         }
         Ok(())
@@ -162,7 +162,7 @@ pub(crate) fn kvmmake() {
                 crate::_start as usize,
                 crate::etext as usize - crate::_start as usize,
                 crate::_start as usize,
-                10,
+                PageTableEntryFlags::RX,
             )
             .expect("Unable to map kernel text");
         page_table
@@ -170,11 +170,16 @@ pub(crate) fn kvmmake() {
                 crate::etext as usize,
                 crate::dev::spec::get_physical_memory_size() - crate::etext as usize,
                 crate::etext as usize,
-                6,
+                PageTableEntryFlags::RW,
             )
             .expect("Unable to map data");
         page_table
-            .map_pages(TRAMPOLINE, PAGE_SIZE, crate::trampoline as usize, 10)
+            .map_pages(
+                TRAMPOLINE,
+                PAGE_SIZE,
+                crate::trampoline as usize,
+                PageTableEntryFlags::RX,
+            )
             .expect("Unable to map trampoline page");
 
         page_table
@@ -207,6 +212,22 @@ bitfield! {
     pub u8, from into RSW, rsw, set_rsw: 9, 8;
     /// Physical Page to map to
     pa, set_pa: 53, 10;
+}
+
+bitflags! {
+    #[derive(Debug, Copy, Clone)]
+    pub struct PageTableEntryFlags: u8 {
+        const V = 1;
+        const R = 1 << 1;
+        const W = 1 << 2;
+        const X = 1 << 3;
+        const U = 1 << 4;
+        const A = 1 << 6;
+        const D = 1 << 7;
+
+        const RX = Self::R.bits() | Self::X.bits();
+        const RW = Self::R.bits() | Self::W.bits();
+    }
 }
 
 impl PageTableEntry {
@@ -261,12 +282,12 @@ impl PageTableEntry {
     /// Get the flag bits in this PTE
     #[must_use]
     #[allow(clippy::trivially_copy_pass_by_ref)]
-    pub fn get_flags(&self) -> u64 {
-        self.bit_range(7, 0)
+    pub fn get_flags(&self) -> PageTableEntryFlags {
+        PageTableEntryFlags::from_bits_truncate(self.bit_range(7, 0))
     }
 
-    pub fn set_flags(&mut self, flags: u8) {
-        self.set_bit_range(7, 0, flags);
+    pub fn set_flags(&mut self, flags: PageTableEntryFlags) {
+        self.set_bit_range(7, 0, flags.bits());
     }
 }
 

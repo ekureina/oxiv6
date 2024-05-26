@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 bitfield = "0.15.0"
+bitflags = "2.5.0"
 fdt = "0.1.5"
 log = "0.4.21"
 num_enum = { version = "0.7.2", default-features = false }
