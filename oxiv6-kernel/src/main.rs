@@ -33,6 +33,8 @@ extern crate alloc;
 mod dev;
 mod kalloc;
 mod println;
+#[allow(dead_code)]
+mod proc;
 mod vm;
 
 extern "C" {

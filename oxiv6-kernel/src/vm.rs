@@ -7,6 +7,7 @@ use riscv::register::satp;
 
 /// A full Page Table
 #[repr(transparent)]
+#[derive(Debug)]
 pub(crate) struct PageTable<'a> {
     first_level: &'a mut [PageTableEntry],
 }
